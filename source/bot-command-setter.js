@@ -1,4 +1,4 @@
-import { STYLES, html, link, sm, ln } from 'teleform'
+import { STYLES, html, link, symbol, ln } from 'teleform'
 
 export { BotCommandSetter }
 
@@ -7,8 +7,8 @@ class BotCommandSetter {
 
   #emojis = {
     done: '✅',
-    failed: '❌',
     finish: '👌',
+    failed: '❌',
     progress: [
       '🕛', '🕐', '🕑', '🕒',
       '🕓', '🕔', '🕕', '🕖',
@@ -194,7 +194,7 @@ class BotCommandSetter {
       const extra = lines.slice(navel - ++i, navel + i)
       chars = this.#arrayItemsLength(extra) + extra.length - 1
     }
-    const dot = sm('.')
+    const dot = symbol('.')
     return lines.toSpliced(navel - i, i + i, dot + dot + dot).join(ln())
   }
 
