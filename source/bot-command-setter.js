@@ -8,6 +8,7 @@ class BotCommandSetter {
   #emojis = {
     done: '✅',
     failed: '❌',
+    finish: '👌',
     progress: [
       '🕛', '🕐', '🕑', '🕒',
       '🕓', '🕔', '🕕', '🕖',
@@ -163,10 +164,21 @@ class BotCommandSetter {
   }
   #icon(status) {
     switch (status) {
-      case true: return ''
-      case false: return this.#emojis.failed
-      default: return this.#emojis.progress[status % 11] + ' '
+      case true:
+        status = [ 'done' ]
+        break
+      case null:
+        status = [ 'finish' ]
+        break
+      case false:
+        status = [ 'failed' ]
+        break
+      default:
+        status = [ 'progress', status % 11 ]
     }
+    if (typeof status[1] === 'undefined')
+      return this.#emojis[status[0]] + ' '
+    else return this.#emojis[status[0]][status[1]] + ' '
   }
   #arrayItemsLength(array) {
     return array.reduce((length, item) => length + item.length, 0)
@@ -182,8 +194,8 @@ class BotCommandSetter {
       const extra = lines.slice(navel - ++i, navel + i)
       chars = this.#arrayItemsLength(extra) + extra.length - 1
     }
-    lines.splice(navel - i, i + i, sm('.') + sm('.') + sm('.'))
-    return lines.join(ln())
+    const dot = sm('.')
+    return lines.toSpliced(navel - i, i + i, dot + dot + dot).join(ln())
   }
 
   setAdminCommands() {
@@ -340,16 +352,17 @@ class BotCommandSetter {
   }
 
   async #report(ctx, msg) {
-    const txt = `${this.#icon(false)} ${html.b(msg)}`
+    const txt = this.#icon(false) + html.b(msg)
     if (!this.#sendingOptions.message_id)
       ctx.send(txt)
         .catch(error => console.error(error))
     else {
+      const icon = this.#icon(this.#sendingOptions.icon)
       const adjustedText = this.#adjustedText()
       ctx.edit(
         ctx.from.id,
         this.#sendingOptions.message_id,
-        adjustedText + ln(2) + txt
+        icon + adjustedText + ln(2) + txt
       ).catch(error => console.error(error))
     }
   }
@@ -357,6 +370,7 @@ class BotCommandSetter {
     this.#adjustContext(ctx)
     await this.#sleep()
     const icon = this.#icon(i)
+    this.#sendingOptions.icon = i
     if (i === 0) {
       try {
         const msg = await ctx.send(icon + txt)
@@ -366,7 +380,7 @@ class BotCommandSetter {
         return this.#report(ctx, error.message)
       }
     } else {
-      if (i === true) txt = `${this.#emojis.done} ${txt}`
+      if (i === true) txt = this.#icon(null) + txt
       const add = ln([ 1, true ].includes(i) ? 2 : 1) + txt
       this.#sendingOptions.text += add
       const adjustedText = this.#adjustedText()
